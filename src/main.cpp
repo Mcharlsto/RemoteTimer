@@ -10,6 +10,7 @@
 #include <EasyButton.h>
 #include <WiFiUdp.h>
 #include <TimeLib.h>
+#include <Timezone.h>
 
 #define NTP_ADDR "pool.ntp.org"
 
@@ -340,11 +341,16 @@ NTPClient timeClient(ntpUDP, NTP_ADDR);
 WiFiManager WiFiMgmt;
 EasyButton encoderBTN(13);
 
+TimeChangeRule GMT = {"GMT", Last, Sun, Mar, 1, 60};
+TimeChangeRule BST = {"BST", Last, Sun, Oct, 1, 0};
+Timezone ukTime(BST, GMT);
+
 void setAlarm() {
   timeClient.update();
   unixOffset = minVal + hourVal;
   long currentTime = timeClient.getEpochTime() + unixOffset;
-  setTime(currentTime);
+  long localTime = ukTime.toLocal(currentTime);
+  setTime(localTime);
   HTTPClient http;
   http.begin(requestAddress);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
